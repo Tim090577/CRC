@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGMH 大腸直腸癌診療指引小幫手 (2025教學版)</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --accent-color: #e8f0fe;
+            --text-color: #333;
+            --bg-color: #f4f6f8;
+            /* Flowchart Colors */
+            --box-blue: #ebf8ff; --border-blue: #4299e1;
+            --box-green: #f0fff4; --border-green: #48bb78;
+            --box-orange: #fffaf0; --border-orange: #ed8936;
+            --box-red: #fff5f5; --border-red: #f56565;
+            --box-purple: #faf5ff; --border-purple: #9f7aea;
+        }
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; line-height: 1.6; color: var(--text-color); margin: 0; background: var(--bg-color); }
+        
+        /* Layout */
+        header { background: var(--primary-color); color: white; padding: 1rem; text-align: center; }
+        .container { max-width: 95%; margin: 15px auto; padding: 15px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); min-height: 85vh;}
+        
+        /* Tabs */
+        .tabs { display: flex; flex-wrap: wrap; border-bottom: 2px solid #ddd; margin-bottom: 20px; gap: 5px; }
+        .tab-btn { padding: 10px 10px; cursor: pointer; border: none; background: #f8f9fa; border-radius: 5px 5px 0 0; font-size: 15px; font-weight: bold; color: #666; transition: 0.3s; flex-grow: 1; min-width: 100px; }
+        .tab-btn:hover { background: #e2e6ea; }
+        .tab-btn.active { background: var(--primary-color); color: white; }
+        .tab-content { display: none; animation: fadeIn 0.4s; }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Form Elements */
+        .form-group { margin-bottom: 15px; padding: 15px; background: var(--accent-color); border-radius: 8px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #004494; }
+        select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        button.action-btn { background: var(--primary-color); color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px; font-weight: bold; }
+        button.action-btn:hover { background: #004494; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        /* Results Area */
+        #result-box, #protocol-result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; border-left: 5px solid var(--primary-color); background: #fff; display: none; border-radius: 4px; }
+        .protocol-card { border-bottom: 1px solid #eee; padding: 12px 0; }
+        .protocol-title { font-weight: bold; color: #000; font-size: 1.1em; display: flex; justify-content: space-between; align-items: center; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 12px; color: white; white-space: nowrap; margin-left: 5px;}
+        .badge-self { background-color: #dc3545; } 
+        .badge-ins { background-color: #28a745; }
+
+        /* Rationale Box */
+        .rationale-box { background-color: #fff8e1; border: 1px solid #ffe0b2; padding: 10px; margin-top: 10px; border-radius: 5px; font-size: 0.9em; color: #8d6e63; }
+        .rationale-title { font-weight: bold; display: block; margin-bottom: 5px; color: #e65100; }
+
+        /* Knowledge Base Accordion */
+        .kb-item { margin-bottom: 10px; border: 1px solid #eee; border-radius: 5px; overflow: hidden; }
+        .kb-header { background: #f1f8ff; padding: 15px; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .kb-header:hover { background: #e1f0ff; }
+        .kb-content { display: none; padding: 15px; background: white; border-top: 1px solid #eee; }
+        .kb-content.open { display: block; }
+        .kb-tag { font-size: 0.8em; padding: 2px 6px; background: #e2e8f0; border-radius: 4px; color: #4a5568; margin-right: 10px; }
+
+        /* ================= Flowchart Styles ================= */
+        .flowchart-wrapper { 
+            overflow: hidden; 
+            padding-bottom: 20px; 
+            text-align: center; 
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background: #fdfdfd;
+            position: relative;
+        }
+        
+        .zoom-controls {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #eee;
+            padding: 5px;
+            border-radius: 20px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .zoom-label { font-size: 0.85em; color: #555; font-weight: bold; }
+        input[type=range] { width: 150px; cursor: pointer; }
+
+        .scale-container {
+            transform-origin: top center;
+            transition: transform 0.2s ease-out;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .legend { margin-bottom: 10px; font-size: 0.9em; color: #666; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .legend span { display: inline-block; width: 12px; height: 12px; margin-right: 3px; border-radius: 2px; vertical-align: middle; }
+        
+        .node {
+            background: white; border: 2px solid #a0aec0; padding: 8px 10px; border-radius: 6px;
+            cursor: pointer; text-align: center; font-weight: bold; position: relative; font-size: 0.9rem;
+            transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: inline-block; margin: 5px; min-width: 100px; vertical-align: top;
+        }
+        .node:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 5px 10px rgba(0,0,0,0.15); z-index: 5; }
+        
+        .n-start { border-color: var(--border-blue); background: var(--box-blue); color: #2b6cb0; }
+        .n-decision { border-color: var(--border-orange); background: var(--box-orange); color: #c05621; }
+        .n-action { border-color: var(--border-green); background: var(--box-green); color: #2f855a; }
+        .n-critical { border-color: var(--border-red); background: var(--box-red); color: #c53030; }
+        .n-therapy { border-color: var(--border-purple); background: var(--box-purple); color: #6b46c1; }
+
+        .branches { display: flex; justify-content: center; position: relative; padding-top: 15px; }
+        .branches::before { content: ''; position: absolute; top: 0; left: 50%; width: 2px; height: 15px; background: #cbd5e0; }
+        .branch { padding: 0 5px; position: relative; }
+        .branch::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: #cbd5e0; }
+        .branch:first-child::before { left: 50%; }
+        .branch:last-child::before { right: 50%; }
+        .branch:only-child::before { display: none; }
+        .branch::after { content: ''; position: absolute; top: 0; left: 50%; width: 2px; height: 15px; background: #cbd5e0; }
+
+        .details-popover {
+            display: none; margin-top: 8px; padding: 8px; background: #fff;
+            border: 1px solid #ccc; border-radius: 4px; font-size: 0.8em;
+            text-align: left; color: #444; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .details-popover.show { display: block; }
+        .details-popover ul { padding-left: 15px; margin: 5px 0; }
+
+        @media (max-width: 768px) {
+            .tabs { flex-direction: row; }
+            .tab-btn { font-size: 0.9em; padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>CGMH 腸癌指引小幫手</h1>
+    <p style="font-size:0.9em; margin-top:5px;">2025/03/26 修訂版 | 臨床決策 & 教學輔助</p>
+</header>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('flowchart')">🗺️ 全局流程</button>
+        <button class="tab-btn" onclick="openTab('mcrc')">🧬 mCRC 決策</button>
+        <button class="tab-btn" onclick="openTab('protocols')">💊 處方查詢</button>
+        <button class="tab-btn" onclick="openTab('knowledge')">📚 決策原理</button>
+    </div>
+
+    <!-- Tab 1: Global Flowchart -->
+    <div id="flowchart" class="tab-content active">
+        <h2 style="text-align:center;">大腸直腸癌全景鑑別流程</h2>
+        
+        <div class="zoom-controls">
+            <span class="zoom-label">🔍 縮放:</span>
+            <input type="range" min="0.4" max="1.5" step="0.1" value="1.0" id="zoomRange" oninput="updateZoom(this.value)">
+            <span class="zoom-label" id="zoomValue">100%</span>
+        </div>
+
+        <div class="legend">
+            <div><span style="background:var(--box-blue)"></span>起始</div>
+            <div><span style="background:var(--box-orange)"></span>決策</div>
+            <div><span style="background:var(--box-green)"></span>處置</div>
+            <div><span style="background:var(--box-red)"></span>mCRC</div>
+            <div><span style="background:var(--box-purple)"></span>藥物</div>
+        </div>
+        
+        <div class="flowchart-wrapper">
+            <div class="scale-container" id="chartContainer">
+                <div class="branches" style="padding-top:0;">
+                    <div class="branch">
+                        <div class="node n-start" onclick="toggleNode('d1')">疑似/確診 CRC<div id="d1" class="details-popover">請點選下方分支<br>進入不同期別決策</div></div>
+                        <div class="branches">
+                            <!-- Branch: Polyp -->
+                            <div class="branch">
+                                <div class="node n-decision" onclick="toggleNode('d2')">早期病灶 (Polyp)<div id="d2" class="details-popover">指引 p.7, 18</div></div>
+                                <div class="branches"><div class="branch"><div class="node n-action" onclick="toggleNode('d3')">內視鏡切除<div id="d3" class="details-popover">Excision</div></div>
+                                    <div class="branches"><div class="branch"><div class="node n-critical" onclick="toggleNode('d4')">風險評估 (Risk)<div id="d4" class="details-popover"><strong>High Risk?</strong><br>需考慮根治性手術</div></div></div></div>
+                                </div></div>
+                            </div>
+                            <!-- Branch: Colon -->
+                            <div class="branch">
+                                <div class="node n-decision">局部大腸癌</div>
+                                <div class="branches"><div class="branch"><div class="node n-action">手術切除</div>
+                                    <div class="branches"><div class="branch"><div class="node n-therapy" onclick="toggleNode('d5')">輔助化療評估<div id="d5" class="details-popover">Stage III 必做<br>High Risk II 考慮</div></div></div></div>
+                                </div></div>
+                            </div>
+                            <!-- Branch: Rectal -->
+                            <div class="branch">
+                                <div class="node n-decision" onclick="toggleNode('d6')">局部直腸癌<div id="d6" class="details-popover">關鍵: MRI CRM<br>(切除邊界)</div></div>
+                                <div class="branches"><div class="branch"><div class="node n-therapy" onclick="toggleNode('d7')">新輔助治療 (Neo)<div id="d7" class="details-popover">CRM+ 需做 CCRT<br>縮小腫瘤範圍</div></div>
+                                    <div class="branches"><div class="branch"><div class="node n-action">TME 手術</div></div></div>
+                                </div></div>
+                            </div>
+                            <!-- Branch: mCRC -->
+                            <div class="branch">
+                                <div class="node n-critical" onclick="toggleNode('d8')">轉移性 (mCRC)<div id="d8" class="details-popover">指引 p.23-26<br>基因導向治療</div></div>
+                                <div class="branches">
+                                    <div class="branch"><div class="node n-action">可切除: 手術</div></div>
+                                    <div class="branch"><div class="node n-therapy">不可切除: 藥物</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: mCRC Wizard -->
+    <div id="mcrc" class="tab-content">
+        <h2>🧬 mCRC 基因導向用藥決策</h2>
+        <p>依據 PDF 第 23-26 頁，系統將依據基因型態提供建議與<strong>臨床機轉解釋</strong>。</p>
+        
+        <div class="form-group">
+            <label>RAS Status (KRAS/NRAS):</label>
+            <select id="ras-status">
+                <option value="wt">Wild Type (野生型)</option>
+                <option value="mt">Mutant (突變型)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>BRAF V600E Status:</label>
+            <select id="braf-status">
+                <option value="wt">Wild Type</option>
+                <option value="mt">Mutation (V600E)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>MSI/MMR Status:</label>
+            <select id="msi-status">
+                <option value="mss">pMMR / MSS (微衛星穩定)</option>
+                <option value="msi-h">dMMR / MSI-H (高度不穩定)</option>
+            </select>
+        </div>
+
+        <button class="action-btn" onclick="checkTreatment()">取得建議處方 & 臨床原理</button>
+
+        <div id="result-box">
+            <h3>💊 建議治療方案：</h3>
+            <div id="treatment-content"></div>
+            
+            <div id="rationale-content" class="rationale-box">
+                <!-- Rationale will appear here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Protocols -->
+    <div id="protocols" class="tab-content">
+        <h2>💊 化療/標靶處方查詢</h2>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="search-input" placeholder="代碼 (PCT2025) 或關鍵字 (HIPEC)...">
+            <button class="action-btn" style="width:auto; margin-top:0;" onclick="searchProtocol()">搜尋</button>
+        </div>
+        <div id="protocol-result"></div>
+    </div>
+
+    <!-- Tab 4: Knowledge Base (WHY?) -->
+    <div id="knowledge" class="tab-content">
+        <h2>📚 臨床決策依據與原理 (Rationale)</h2>
+        <p>針對指引中重要決策點的病理與臨床解釋：</p>
+
+        <div class="kb-item">
+            <div class="kb-header" onclick="toggleKb(this)">
+                <span>早期息肉為何要追加手術? (High Risk Polyp)</span> <span>▼</span>
+            </div>
+            <div class="kb-content">
+                <span class="kb-tag">Early Stage</span><span class="kb-tag">PDF p.7, 18</span>
+                <p><strong>決策點：</strong>當內視鏡切除的息肉含有「高風險特徵」時，淋巴結轉移 (LNM) 的風險可能超過 10%，高於手術死亡率，故建議追加根治性手術。</p>
+                <p><strong>危險因子 (High Risk Features)：</strong></p>
+                <ul>
+                    <li><strong>Positive Margin:</strong> 切除邊界有癌細胞，復發率極高。</li>
+                    <li><strong>Lymphovascular Invasion (LVI):</strong> 癌細胞侵入淋巴管/血管，是轉移的第一步。</li>
+                    <li><strong>Poorly Differentiated:</strong> 分化不良代表腫瘤惡性度高，擴散快。</li>
+                    <li><strong>SM invasion ≥ 1mm:</strong> 侵犯黏膜下層過深，接觸淋巴管機會大增。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="kb-item">
+            <div class="kb-header" onclick="toggleKb(this)">
+                <span>直腸癌 CRM 為何決定治療路徑?</span> <span>▼</span>
+            </div>
+            <div class="kb-content">
+                <span class="kb-tag">Rectal Cancer</span><span class="kb-tag">PDF p.17</span>
+                <p><strong>CRM (Circumferential Resection Margin):</strong> 環周切除邊界，是直腸癌局部復發最強的預測因子。</p>
+                <ul>
+                    <li><strong>CRM Involved (陽性):</strong> MRI 顯示腫瘤距離直腸系膜筋膜 (Mesorectal fascia) 小於 1mm。若直接手術，極高機率會殘留癌細胞 (R1 resection)。</li>
+                    <li><strong>處置邏輯：</strong> 必須先進行 <strong>新輔助放化療 (CCRT)</strong> 或 <strong>TNT</strong>，利用放射線使腫瘤縮小 (Downsizing)，讓邊界變回乾淨 (Clear)，才能進行手術 (TME)。</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="kb-item">
+            <div class="kb-header" onclick="toggleKb(this)">
+                <span>為什麼 mCRC 要做 RAS/BRAF 檢測?</span> <span>▼</span>
+            </div>
+            <div class="kb-content">
+                <span class="kb-tag">mCRC</span><span class="kb-tag">Pathology</span>
+                <p>這是決定是否使用 <strong>抗 EGFR 標靶藥物 (Cetuximab/Panitumumab)</strong> 的關鍵。</p>
+                <ul>
+                    <li><strong>EGFR 路徑原理：</strong> EGFR 受體活化後，會傳訊號給 RAS → BRAF → 促進細胞分裂。</li>
+                    <li><strong>RAS 突變 (Mutant):</strong> 下游的 RAS 自己會一直「開著」發送訊號，不管上游有沒有阻斷 EGFR 都沒用。<strong>所以 RAS 突變者，打 EGFR 藥物無效 (徒增副作用)。</strong></li>
+                    <li><strong>BRAF V600E 突變:</strong> 預後極差的亞型。單用 EGFR 抑制劑會因 Feedback Loop 導致再活化，需合併 BRAF 抑制劑 (如 Encorafenib) 才有效果 (Beacon trial)。</li>
+                </ul>
+            </div>
+        </div>
+        
+         <div class="kb-item">
+            <div class="kb-header" onclick="toggleKb(this)">
+                <span>MSI-H 為何首選免疫治療?</span> <span>▼</span>
+            </div>
+            <div class="kb-content">
+                <span class="kb-tag">Immunotherapy</span><span class="kb-tag">dMMR</span>
+                <p><strong>機轉解釋：</strong></p>
+                <ul>
+                    <li><strong>dMMR (DNA錯配修復缺失):</strong> 腫瘤細胞無法修復 DNA 錯誤，導致累積大量突變 (High Tumor Mutational Burden, TMB-H)。</li>
+                    <li><strong>新抗原 (Neoantigens):</strong> 這些突變會產生大量怪異的蛋白質 (抗原)，讓免疫系統很容易辨識出它們是「壞人」。</li>
+                    <li><strong>Checkpoint Inhibitor:</strong> 這種腫瘤通常會利用 PD-L1 來「踩剎車」欺騙免疫細胞。使用免疫藥物 (Keytruda/Opdivo) 放開剎車，免疫細胞就能狂殺這些高突變的癌細胞。</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // --- Data ---
+    const protocols = [
+        { code: "PCT2025-01", name: "Bevacizumab + mFOLFOX 6", type: "Palliative", status: "健保 (二線24週)", details: "Bevacizumab 5mg/kg + mFOLFOX6 Q2W. (2025新增)" },
+        { code: "ACT2010-6", name: "mFOLFOX 6", type: "Adjuvant", status: "健保 (Stage III)", details: "Oxaliplatin 85mg/m2 + LV + 5-FU bolus + 5-FU infusion (46hr). Q2W x 12 cycles." },
+        { code: "PCT2010-5", name: "HIPEC by Oxaliplatin", type: "Palliative", status: "健保/自費", details: "<strong>腹腔灌注:</strong> Oxaliplatin 360~460 mg/m2 (Irrigation).<br><strong>IV (Optional):</strong> 5-FU 400mg/m2 + LV 20mg/m2.<br><strong>Pre-med:</strong> Dexamethasone 5mg + Palonosetron." },
+        { code: "HIPEC-MMC", name: "HIPEC by Mitomycin C", type: "Palliative", status: "健保/自費", details: "<strong>腹腔灌注:</strong> Mitomycin C 40mg Total.<br>(a) 30mg in Dialysate for 60 mins.<br>(b) 10mg in Dialysate for 30 mins." },
+        { code: "ACT2021-01", name: "TEGAFOX", type: "Adjuvant", status: "部分自費", details: "Oxaliplatin 85mg/m2 (自費 D1) + UFT/LV (健保 PO D1-5, 8-12). Q2W." },
+        { code: "PCT2010-22", name: "Avastin + FOLFIRI", type: "Palliative", status: "自費 / 一線健保", details: "Bevacizumab 5mg/kg + Irinotecan + LV + 5-FU." },
+        { code: "PCT2015-02", name: "Panitumumab", type: "Palliative", status: "自費", details: "6mg/kg IVF 60mins Q2W. 單獨或搭配化療 (限 RAS WT)." }
+    ];
+
+    // --- Logic ---
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        // Button Highlight Logic
+        const buttons = document.querySelectorAll('.tab-btn');
+        if(tabId === 'flowchart') buttons[0].classList.add('active');
+        if(tabId === 'mcrc') buttons[1].classList.add('active');
+        if(tabId === 'protocols') buttons[2].classList.add('active');
+        if(tabId === 'knowledge') buttons[3].classList.add('active');
+
+        if(tabId === 'flowchart' && window.innerWidth < 768) {
+            updateZoom(0.6); 
+            document.getElementById('zoomRange').value = 0.6;
+        }
+    }
+
+    function toggleNode(id) {
+        const el = document.getElementById(id);
+        const isShown = el.classList.contains('show');
+        document.querySelectorAll('.details-popover').forEach(p => p.classList.remove('show'));
+        if (!isShown) el.classList.add('show');
+    }
+
+    function toggleKb(header) {
+        const content = header.nextElementSibling;
+        content.classList.toggle('open');
+    }
+
+    function updateZoom(val) {
+        document.getElementById('chartContainer').style.transform = `scale(${val})`;
+        document.getElementById('zoomValue').innerText = Math.round(val * 100) + '%';
+    }
+
+    function checkTreatment() {
+        const ras = document.getElementById('ras-status').value;
+        const braf = document.getElementById('braf-status').value;
+        const msi = document.getElementById('msi-status').value;
+        let suggestions = [];
+        let rationale = [];
+
+        // Logic & Rationale
+        if (msi === 'msi-h') {
+            suggestions.push("✅ <strong>Immunotherapy (首選):</strong> Checkpoint Inhibitors (Pembrolizumab / Nivolumab ± Ipilimumab)");
+            rationale.push("🔸 <strong>MSI-H 機轉:</strong> 腫瘤具有大量突變抗原，免疫檢查點抑制劑效果顯著優於傳統化療 (PDF p.27)。");
+        }
+
+        if (ras === 'wt' && braf === 'wt') {
+            suggestions.push("✅ <strong>Doublet Chemo + Anti-EGFR:</strong> FOLFOX/FOLFIRI + Cetuximab/Panitumumab (左側大腸優先)");
+            suggestions.push("✅ <strong>Doublet Chemo + Bevacizumab:</strong> FOLFOX/FOLFIRI + Bevacizumab");
+            rationale.push("🔹 <strong>RAS/BRAF 野生型:</strong> EGFR 下游路徑完整，故使用 Cetuximab/Panitumumab 阻斷 EGFR 受體有效。");
+        } else if (ras === 'mt') {
+            suggestions.push("⛔ <strong>Anti-EGFR 不適用</strong> (禁用 Cetuximab/Panitumumab)");
+            suggestions.push("✅ <strong>Chemo + Bevacizumab:</strong> FOLFOX/FOLFIRI + Bevacizumab");
+            suggestions.push("✅ <strong>Intensive:</strong> FOLFOXIRI + Bevacizumab (若體能許可)");
+            rationale.push("🔻 <strong>RAS 突變:</strong> 導致下游訊號持續活化，這會讓上游的 EGFR 抑制劑無效化。應改用抗血管新生藥物 (Bevacizumab)。");
+        }
+
+        if (braf === 'mt') {
+             suggestions.push("⚠️ <strong>BRAF V600E Mutation:</strong> 預後較差");
+             suggestions.push("✅ <strong>First Line:</strong> FOLFOXIRI + Bevacizumab");
+             suggestions.push("✅ <strong>Second/Third Line:</strong> Encorafenib + Cetuximab (Beacon Regimen)");
+             rationale.push("🔸 <strong>BRAF V600E:</strong> 極具侵襲性。需使用強力化療 (Triplet) 或針對 BRAF 節點的雙重抑制 (Beacon)。");
+        }
+
+        if (suggestions.length === 0) suggestions.push("建議採行 Best Supportive Care 或參與臨床試驗。");
+
+        document.getElementById('treatment-content').innerHTML = `<ul>${suggestions.map(s => `<li>${s}</li>`).join('')}</ul>`;
+        document.getElementById('rationale-content').innerHTML = `<span class="rationale-title">💡 臨床決策原理：</span>${rationale.join('<br>')}`;
+        document.getElementById('result-box').style.display = 'block';
+    }
+
+    function searchProtocol() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        if(!query) return;
+        const results = protocols.filter(p => 
+            p.code.toLowerCase().includes(query) || 
+            p.name.toLowerCase().includes(query) ||
+            p.details.toLowerCase().includes(query)
+        );
+        const container = document.getElementById('protocol-result');
+        container.style.display = 'block';
+        if (results.length === 0) {
+            container.innerHTML = "<p>找不到符合的處方。</p>";
+            return;
+        }
+        container.innerHTML = results.map(p => `
+            <div class="protocol-card">
+                <div class="protocol-title">${p.code} - ${p.name} 
+                    <span class="badge ${p.status.includes('自費') ? 'badge-self' : 'badge-ins'}">${p.status}</span>
+                </div>
+                <div style="font-size:0.9em; margin-top:5px; color:#555;">${p.details}</div>
+            </div>
+        `).join('');
+    }
+</script>
+
+</body>
+</html>
